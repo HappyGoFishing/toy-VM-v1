@@ -1,5 +1,6 @@
-mov r1 10
-mov r2 20
-add r3 r1 r2
-sub r1 r2 r3
-setpc 5
+
+mov r1 1
+mov r2 2
+add r1 r1 r2
+jmpneq 2 r1 15
+syscall

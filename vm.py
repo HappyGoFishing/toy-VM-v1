@@ -43,28 +43,62 @@ def sub(dest, s1, s2) -> None:
 		registers[dest] = int(s1) - registers[s2]
 	else:
 		registers[dest] = int(s1) + int(s2)
-	
+
+def jmp(line) -> None:
+	if line in registers:
+		registers["pc"] = registers[line] -1
+	else:
+		registers["pc"] = int(line) -1
+
+def jeq(line, cmp1, cmp2) -> None: # jump to line if equal
+	if cmp1 in registers:
+		if registers[cmp1] == int(cmp2):
+			jmp(line=int(line))
+	elif cmp2 in registers:
+		if int(cmp1) == registers[cmp2]:
+			jmp(line=int(line))
+	else:
+		if int(cmp1) == int(cmp2):
+			jmp(line=int(line))
+
+def jneq(line, cmp1, cmp2) -> None: # jump to line if NOT equal
+	if cmp1 in registers:
+		if registers[cmp1] != int(cmp2):
+			jmp(line=int(line))
+	elif cmp2 in registers:
+		if int(cmp1) != registers[cmp2]:
+			jmp(line=int(line))
+	else:
+		if int(cmp1) != int(cmp2):
+			jmp(line=int(line))
+
 def execute_instruction(instruction: str) -> None:
 	parts = instruction.split()
 	
 	match parts[0]:
 		case "mov":
-			if len(parts) != 3:
-				halt("malformed instruction move")
-			else:
-				mov(dest=parts[1], s=parts[2])
+			if len(parts) != 3: halt("malformed instruction move")
+			else: mov(dest=parts[1], s=parts[2])
 
 		case "add":
-			if len(parts) != 4:
-				halt("malformed instruction add")
-			else:
-				add(dest=parts[1], s1=parts[2], s2=parts[3])
+			if len(parts) != 4: halt("malformed instruction add")
+			else: add(dest=parts[1], s1=parts[2], s2=parts[3])
 
 		case "sub":
-			if len(parts) != 4:
-				halt("malformed instruction sub")
-			else:
-				sub(dest=parts[1], s1=parts[2], s2=parts[3])
+			if len(parts) != 4: halt("malformed instruction sub")
+			else: sub(dest=parts[1], s1=parts[2], s2=parts[3])
+		
+		case "jmp":
+			if len(parts) != 2: halt("malformed instruction jmp")
+			else: jmp(line=parts[1])
+		
+		case "jmpeq":
+			if len(parts) != 4: halt("malformed instruction jeq")
+			else: jeq(line=parts[1], cmp1=parts[2], cmp2=parts[3])
+		
+		case "jmpneq":
+			if len(parts) != 4: halt("malformed instruction jneq")
+			else: jneq(line=parts[1], cmp1=parts[2], cmp2=parts[3])
 
 		case "halt":
 			halt("received instruction")
@@ -81,6 +115,7 @@ with open(sys.argv[1], "r") as f:
 	program = f.read().strip().split("\n")
 
 while registers["pc"] < len(program):
-	execute_instruction(program[registers["pc"]])
+	instruction = program[registers["pc"]]
+	execute_instruction(instruction)
 	registers["pc"] += 1
 	time.sleep(0.5)
