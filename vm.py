@@ -1,18 +1,18 @@
 import sys, time
 
-program_counter = 0 
-
 registers = {
+	"pc": 0, # program  counter
 	"r1": 0,
 	"r2": 0,
 	"r3": 0,
 	"r4": 0,
 }
+
 def halt(message="no reason provided") -> None:
 	print(f"halted: {message}")
 	exit()
 
-def move(dest, s) -> None:	
+def mov(dest, s) -> None:	
 	if s in registers:
 		registers[dest] = registers[s]
 	else:
@@ -44,15 +44,15 @@ def sub(dest, s1, s2) -> None:
 	else:
 		registers[dest] = int(s1) + int(s2)
 	
-def execute(instruction: str) -> None:
+def execute_instruction(instruction: str) -> None:
 	parts = instruction.split()
 	
 	match parts[0]:
-		case "move":
+		case "mov":
 			if len(parts) != 3:
 				halt("malformed instruction move")
 			else:
-				move(dest=parts[1], s=parts[2])
+				mov(dest=parts[1], s=parts[2])
 
 		case "add":
 			if len(parts) != 4:
@@ -80,7 +80,7 @@ program: list[str]
 with open(sys.argv[1], "r") as f:
 	program = f.read().strip().split("\n")
 
-while program_counter < len(program):
-	execute(program[program_counter])
-	program_counter += 1
+while registers["pc"] < len(program):
+	execute_instruction(program[registers["pc"]])
+	registers["pc"] += 1
 	time.sleep(0.5)
