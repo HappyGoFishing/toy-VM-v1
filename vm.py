@@ -1,4 +1,5 @@
 import sys, time
+from ascii import ascii_table
 
 registers = {
 	"pc": 0, # program  counter
@@ -50,7 +51,7 @@ def jmp(line) -> None:
 	else:
 		registers["pc"] = int(line) -1
 
-def jeq(line, cmp1, cmp2) -> None: # jump to line if equal
+def jmpeq(line, cmp1, cmp2) -> None: # jump to line if equal
 	if cmp1 in registers:
 		if registers[cmp1] == int(cmp2):
 			jmp(line=int(line))
@@ -61,7 +62,7 @@ def jeq(line, cmp1, cmp2) -> None: # jump to line if equal
 		if int(cmp1) == int(cmp2):
 			jmp(line=int(line))
 
-def jneq(line, cmp1, cmp2) -> None: # jump to line if NOT equal
+def jmpneq(line, cmp1, cmp2) -> None: # jump to line if NOT equal
 	if cmp1 in registers:
 		if registers[cmp1] != int(cmp2):
 			jmp(line=int(line))
@@ -77,7 +78,7 @@ def execute_instruction(instruction: str) -> None:
 	
 	match parts[0]:
 		case "mov":
-			if len(parts) != 3: halt("malformed instruction move")
+			if len(parts) != 3: halt("malformed instruction mov")
 			else: mov(dest=parts[1], s=parts[2])
 
 		case "add":
@@ -93,29 +94,41 @@ def execute_instruction(instruction: str) -> None:
 			else: jmp(line=parts[1])
 		
 		case "jmpeq":
-			if len(parts) != 4: halt("malformed instruction jeq")
-			else: jeq(line=parts[1], cmp1=parts[2], cmp2=parts[3])
+			if len(parts) != 4: halt("malformed instruction jmpeq")
+			else: jmpeq(line=parts[1], cmp1=parts[2], cmp2=parts[3])
 		
 		case "jmpneq":
-			if len(parts) != 4: halt("malformed instruction jneq")
-			else: jneq(line=parts[1], cmp1=parts[2], cmp2=parts[3])
+			if len(parts) != 4: halt("malformed instruction jmpneq")
+			else: jmpneq(line=parts[1], cmp1=parts[2], cmp2=parts[3])
 
 		case "halt":
 			halt("received instruction")
 
 		case _:
-			halt("unknown instruction")
+			halt(f"unknown instruction: ({instruction})")
 
 	print(registers)
 			
 
+fallback_program = [
+	"mov r1 1",
+	"mov r2 1",
+	"add r1 r1 r2",
+	"jmpneq 2 r1 3",
+]
 
 program: list[str]
-with open(sys.argv[1], "r") as f:
-	program = f.read().strip().split("\n")
+if len(sys.argv) <= 1:
+	print("no program provided")
+	print("usage: pass argv[1] as program path")
+	exit(1)
+else:
+	print(f"using program {sys.argv[1]}")
+	with open(sys.argv[1], "r") as f:
+		program = f.read().strip().split("\n")
 
 while registers["pc"] < len(program):
-	instruction = program[registers["pc"]]
-	execute_instruction(instruction)
+	execute_instruction(program[registers["pc"]])
 	registers["pc"] += 1
 	time.sleep(0.5)
+print("successfully executed program")
